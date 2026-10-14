@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:todo_app/feature/todo/provider/todo_provider.dart';
 import 'package:todo_app/feature/todo/widget/widget.dart';
 
-class Todoscreen extends StatefulWidget {
+class Todoscreen extends ConsumerStatefulWidget {
   const Todoscreen({super.key});
 
   @override
-  State<Todoscreen> createState() => _TodoscreenState();
+  ConsumerState<Todoscreen> createState() => _TodoscreenState();
 }
 
-class _TodoscreenState extends State<Todoscreen> {
+class _TodoscreenState extends ConsumerState<Todoscreen> {
 
   //print our git dey workkk ooo
   final titleController = TextEditingController();
@@ -17,7 +19,8 @@ class _TodoscreenState extends State<Todoscreen> {
 
   
 
-   List <Todomodel> list = [];
+ //  List <Todomodel> list = [];
+    List <Todomodel> providerList = [];
     List <Todomodel> listCopy = [];
 
   bool isSearching = false;
@@ -31,8 +34,8 @@ class _TodoscreenState extends State<Todoscreen> {
       if(searchController.text.trim().isNotEmpty){
         searchTodo();
       }else{
-        list.clear();
-        list.addAll(listCopy);
+       // list.clear();
+      //  list.addAll(listCopy);
         setState(() {});
       }
       
@@ -60,15 +63,17 @@ class _TodoscreenState extends State<Todoscreen> {
             TextButton(
               onPressed: () {
                 if (isEdit){
-                  list.removeAt(index);
-                  list.insert(index, Todomodel(titleController.text, subTitleController.text));
-                  listCopy.removeAt(index);
-                  listCopy.insert(index, Todomodel(titleController.text, subTitleController.text));
+                  ref.read(todoProvider.notifier).editTodo(index, Todomodel(titleController.text, subTitleController.text));
+                 // list.removeAt(index);
+                  //list.insert(index, Todomodel(titleController.text, subTitleController.text));
+                  //listCopy.removeAt(index);
+                 // listCopy.insert(index, Todomodel(titleController.text, subTitleController.text));
                   
                 }
                 else{
-                  list.add(Todomodel(titleController.text, subTitleController.text));
-                  listCopy.add(Todomodel(titleController.text, subTitleController.text));
+                  ref.read(todoProvider.notifier).addTodo(Todomodel(titleController.text, subTitleController.text));
+                 // list.add(Todomodel(titleController.text, subTitleController.text));
+                  //listCopy.add(Todomodel(titleController.text, subTitleController.text));
 
                 }
 
@@ -86,22 +91,24 @@ class _TodoscreenState extends State<Todoscreen> {
     );
   }
    void searchTodo(){
-    list.clear();
-    print(list);
-    print(listCopy);
-    print(searchController.text.toLowerCase());
-    for(var value in listCopy){
-      if(value.title.toString().toLowerCase().contains(searchController.text.toLowerCase()) || value.subTitle.toString().toLowerCase().contains(searchController.text.toLowerCase()) ){
-        list.add(value);
+    searchTodo();
+  //  list.clear();
+   // print(list);
+   // print(listCopy);
+   // print(searchController.text.toLowerCase());
+   // for(var value in listCopy){
+   //   if(value.title.toString().toLowerCase().contains(searchController.text.toLowerCase()) || value.subTitle.toString().toLowerCase().contains(searchController.text.toLowerCase()) ){
+    //    list.add(value);
 
-      }
-    }
-     print(list);
-    print(listCopy);
-    setState(() {});
+     // }
+   // }
+    // print(list);
+   // print(listCopy);
+    //setState(() {});
    }
   @override
   Widget build(BuildContext context) {
+    var providerList = ref.watch(todoProvider);
   
       return Scaffold(
         backgroundColor: Colors.grey[100],
@@ -125,7 +132,7 @@ class _TodoscreenState extends State<Todoscreen> {
         SizedBox(width: 20,),],),
         body: ListView.builder(
           padding: EdgeInsets.all(10),
-          itemCount: list.length,
+          itemCount: providerList.length,
           itemBuilder: (context, index){
 
             return Card(
@@ -135,10 +142,11 @@ class _TodoscreenState extends State<Todoscreen> {
                 leading: GestureDetector(
                   onTap: () {
                     isEdit = true;
-                    setState(() {});
-                     var model = list[index];
+                    //setState(() {});
+                     var model = providerList[index];
                       titleController.text = model.title;
                       subTitleController.text = model.subTitle;
+                      ref.read(todoProvider.notifier).editTodo(index, Todomodel(titleController.text, subTitleController.text));
                       showMyDialog(index);
                       
         
@@ -149,17 +157,16 @@ class _TodoscreenState extends State<Todoscreen> {
 
                 trailing: GestureDetector(
                   onTap: (){
-                    list.removeAt(index);
-                    setState(() {});
+                    ref.read(todoProvider.notifier).deleteTodo(index);
                   },
                   child: Icon(Icons.delete,
                   color: Colors.red,),
                 ),
 
 
-                title: Text(list[index].title,
+                title: Text(providerList[index].title,
                 style: TextStyle(fontWeight: FontWeight.bold),),
-                subtitle: Text(list[index].subTitle),
+                subtitle: Text(providerList[index].subTitle),
               ),
             ); 
           }
